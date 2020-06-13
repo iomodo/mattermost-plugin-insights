@@ -1,13 +1,17 @@
 package command
 
 import (
-	"fmt"
+	"bytes"
+	"encoding/base32"
 	"strings"
 
 	pluginapi "github.com/mattermost/mattermost-plugin-api"
+	"github.com/mattermost/mattermost-plugin-insights/server/api"
 	"github.com/mattermost/mattermost-plugin-insights/server/bot"
+	"github.com/mattermost/mattermost-plugin-insights/server/chart"
 	"github.com/mattermost/mattermost-plugin-insights/server/insights"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/pborman/uuid"
 )
 
 const helpText = "###### Mattermost Workplace Insights Plugin - Slash Command Help\n" +
@@ -21,16 +25,18 @@ type Command struct {
 	pluginAPI *pluginapi.Client
 	poster    bot.Poster
 	insight   insights.Service
+	charts    *api.ChartsHandler
 }
 
 // NewCommand creates new command
-func NewCommand(args *model.CommandArgs, logger bot.Logger, api *pluginapi.Client, poster bot.Poster, insight insights.Service) *Command {
+func NewCommand(args *model.CommandArgs, logger bot.Logger, api *pluginapi.Client, poster bot.Poster, insight insights.Service, chartsHandler *api.ChartsHandler) *Command {
 	return &Command{
 		args:      args,
 		log:       logger,
 		pluginAPI: api,
 		poster:    poster,
 		insight:   insight,
+		charts:    chartsHandler,
 	}
 }
 
@@ -87,10 +93,30 @@ func (c *Command) postCommandResponse(text string) {
 
 func (c *Command) posts() {
 	rows := c.insight.GetPostCounts("", "", false, false)
-	text := fmt.Sprintf("Number of rows are %d\n", len(rows))
+	chart := chart.CreateBarChart("Posts per day", rows)
+	id := NewID()
+	c.charts.AddChart(id, chart)
 
-	for _, row := range rows {
-		text = text + row.Name + " - " + fmt.Sprintf("%f", row.Value) + "\n"
+	siteURL := "http://localhost:8065"
+	if c.pluginAPI.Configuration.GetConfig().ServiceSettings.SiteURL != nil {
+		siteURL = *c.pluginAPI.Configuration.GetConfig().ServiceSettings.SiteURL
 	}
+	chartURL := siteURL + "/plugins/com.mattermost.plugin-insights/api/v1/charts?id=" + id
+
+	text := "![" + "Posts per day" + "](" + chartURL + ")"
 	c.poster.Ephemeral(c.args.UserId, c.args.ChannelId, "%s", text)
+}
+
+var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769")
+
+// NewID is a globally unique identifier.  It is a [A-Z0-9] string 26
+// characters long.  It is a UUID version 4 Guid that is zbased32 encoded
+// with the padding stripped off.
+func NewID() string {
+	var b bytes.Buffer
+	encoder := base32.NewEncoder(encoding, &b)
+	encoder.Write(uuid.NewRandom())
+	encoder.Close()
+	b.Truncate(26) // removes the '==' padding
+	return b.String()
 }
