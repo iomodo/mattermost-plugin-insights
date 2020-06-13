@@ -21,7 +21,7 @@ type ChartsHandler struct {
 	mux       sync.Mutex
 }
 
-// NewIncidentHandler Creates a new Plugin API handler.
+// NewChartsHandler Creates a new Plugin API handler.
 func NewChartsHandler(router *mux.Router, api *pluginapi.Client, poster bot.Poster, log bot.Logger) *ChartsHandler {
 	handler := &ChartsHandler{
 		pluginAPI: api,
