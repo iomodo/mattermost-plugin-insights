@@ -38,7 +38,7 @@ func (s *ServiceImpl) GetPosts() int {
 	return count
 }
 
-func (s *ServiceImpl) GetPostCounts(teamID, channelID string, botsOnly, yesterdayOnly bool) model.AnalyticsRows {
+func (s *ServiceImpl) GetPostCounts(teamID, channelID, frequency, span string, botsOnly bool) model.AnalyticsRows {
 	rows, err := s.store.GetPostCounts(store.PostCountsOptions{
 		TeamID:    teamID,
 		ChannelID: channelID,
@@ -46,6 +46,8 @@ func (s *ServiceImpl) GetPostCounts(teamID, channelID string, botsOnly, yesterda
 		Start:     0,
 		End:       0,
 		Limit:     50,
+		Frequency: store.FrequencyType(frequency),
+		Span:      store.SpanType(span),
 	})
 	if err != nil {
 		s.pluginAPI.Log.Debug("error getting post counts", err)

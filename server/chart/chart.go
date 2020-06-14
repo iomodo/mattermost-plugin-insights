@@ -20,7 +20,7 @@ func CreateBarChart(title string, rows model.AnalyticsRows) *bytes.Buffer {
 				Top: 40,
 			},
 		},
-		Height:   512,
+		Height:   1024,
 		BarWidth: 60,
 		Bars:     values,
 	}

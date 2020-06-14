@@ -55,7 +55,7 @@ func (p *Plugin) OnActivate() error {
 	p.bot = bot.New(pluginAPIClient, p.config.GetConfiguration().BotUserID, p.config)
 
 	st := store.NewStore(pluginAPIClient, p.bot)
-	p.handler = api.NewHandler()
+	p.handler = api.NewHandler(pluginAPIClient)
 
 	p.chartsHandler = api.NewChartsHandler(p.handler.APIRouter, pluginAPIClient, p.bot, p.bot)
 

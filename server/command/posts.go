@@ -56,7 +56,28 @@ func createPostsAutocompleteData() *model.AutocompleteData {
 }
 
 func (c *Command) handlePosts(parameters []string) {
-	rows := c.insight.GetPostCounts("", "", false, false)
+	team := ""
+	channel := ""
+	frequency := "daily"
+	span := "month"
+	if len(parameters) > 0 && parameters[0] == "--team" {
+		team = parameters[1]
+		parameters = parameters[2:]
+	}
+	if len(parameters) > 0 && parameters[0] == "--channel" {
+		channel = parameters[1]
+		parameters = parameters[2:]
+	}
+	if len(parameters) > 0 && parameters[0] == "--frequency" {
+		frequency = parameters[1]
+		parameters = parameters[2:]
+	}
+	if len(parameters) > 0 && parameters[0] == "--span" {
+		span = parameters[1]
+		parameters = parameters[2:]
+	}
+
+	rows := c.insight.GetPostCounts(team, channel, frequency, span, false)
 	chart := chart.CreateBarChart("Posts per day", rows)
 	id := utils.NewID()
 	c.charts.AddChart(id, chart)

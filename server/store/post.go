@@ -1,6 +1,7 @@
 package store
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -28,6 +29,24 @@ func (s *Store) GetPostCount() (int, error) {
 	return numPosts, nil
 }
 
+type FrequencyType string
+
+const (
+	FrequencyTypeDaily   FrequencyType = "daily"
+	FrequencyTypeWeekly  FrequencyType = "weekly"
+	FrequencyTypeMonthly FrequencyType = "monthly"
+	FrequencyTypeYearly  FrequencyType = "yearly"
+)
+
+type SpanType string
+
+const (
+	SpanTypeWeek  SpanType = "week"
+	SpanTypeMonth SpanType = "month"
+	SpanTypeYear  SpanType = "year"
+	SpanTypeAll   SpanType = "all"
+)
+
 type PostCountsOptions struct {
 	TeamID    string
 	ChannelID string
@@ -35,21 +54,48 @@ type PostCountsOptions struct {
 	Start     int64
 	End       int64
 	Limit     int64
+	Frequency FrequencyType
+	Span      SpanType
 }
 
 func (s *Store) GetPostCounts(options PostCountsOptions) (model.AnalyticsRows, error) {
 	args := []interface{}{}
 	query :=
 		`SELECT
-			DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
+			%s(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
 			COUNT(Posts.Id) AS Value
 		FROM Posts`
+	freq := "DATE"
+	if options.Frequency == FrequencyTypeDaily {
+		freq = "DATE"
+	} else if options.Frequency == FrequencyTypeWeekly {
+		freq = "WEEK"
+	} else if options.Frequency == FrequencyTypeMonthly {
+		freq = "MONTH"
+	} else if options.Frequency == FrequencyTypeYearly {
+		freq = "YEAR"
+	}
+	query = fmt.Sprintf(query, freq)
+
 	if options.BotsOnly {
 		query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
 	}
 	if len(options.TeamID) > 0 {
 		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = ? AND"
 		args = append(args, options.TeamID)
+	}
+	if options.Span == SpanTypeWeek {
+		query += ` WHERE Posts.CreateAt >= ?`
+		t := time.Now().Add(time.Hour * time.Duration(-24*7))
+		args = append(args, t.Unix()*1000)
+	} else if options.Span == SpanTypeMonth {
+		query += ` WHERE Posts.CreateAt >= ?`
+		t := time.Now().Add(time.Hour * time.Duration(-24*30))
+		args = append(args, t.Unix()*1000)
+	} else if options.Span == SpanTypeYear {
+		query += ` WHERE Posts.CreateAt >= ?`
+		t := time.Now().Add(time.Hour * time.Duration(-24*365))
+		args = append(args, t.Unix()*1000)
 	}
 	if options.Start != 0 && options.End != 0 {
 		query += ` WHERE Posts.CreateAt <= ?
@@ -58,12 +104,13 @@ func (s *Store) GetPostCounts(options PostCountsOptions) (model.AnalyticsRows, e
 		args = append(args, options.End)
 	}
 
-	query += ` GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
+	query += fmt.Sprintf(` GROUP BY %s(FROM_UNIXTIME(Posts.CreateAt / 1000))
 		ORDER BY Name DESC
-		LIMIT ?`
+		LIMIT ?`, freq)
 	args = append(args, options.Limit)
 
 	s.log.Debugf("query", query)
+	s.log.Debugf("args", args)
 
 	rows, err := s.db.Query(query, args...)
 	if err != nil {
@@ -73,8 +120,6 @@ func (s *Store) GetPostCounts(options PostCountsOptions) (model.AnalyticsRows, e
 
 	result := []*model.AnalyticsRow{}
 	for rows.Next() {
-		s.log.Debugf("next")
-
 		var (
 			Name  string
 			Value float64
@@ -82,9 +127,6 @@ func (s *Store) GetPostCounts(options PostCountsOptions) (model.AnalyticsRows, e
 		if err := rows.Scan(&Name, &Value); err != nil {
 			log.Fatal(err)
 		}
-		s.log.Debugf("Name", Name)
-		s.log.Debugf("Value", Value)
-
 		result = append(result, &model.AnalyticsRow{Name: Name, Value: Value})
 	}
 	return result, nil

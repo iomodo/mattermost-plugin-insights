@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	pluginapi "github.com/mattermost/mattermost-plugin-api"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -19,11 +20,12 @@ const PluginIDContextKey = "plugin_id"
 type Handler struct {
 	APIRouter *mux.Router
 	root      *mux.Router
+	pluginAPI *pluginapi.Client
 }
 
 // NewHandler constructs a new handler.
-func NewHandler() *Handler {
-	handler := &Handler{}
+func NewHandler(pluginAPIClient *pluginapi.Client) *Handler {
+	handler := &Handler{pluginAPI: pluginAPIClient}
 
 	root := mux.NewRouter()
 	api := root.PathPrefix("/api/v1").Subrouter()
@@ -38,7 +40,12 @@ func NewHandler() *Handler {
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, sourcePluginID string) {
-	h.root.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), contextKey(PluginIDContextKey), sourcePluginID)))
+	switch r.URL.Path {
+	case "/teams":
+		h.getTeams(w, r)
+	default:
+		h.root.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), contextKey(PluginIDContextKey), sourcePluginID)))
+	}
 }
 
 // HandleError writes err as json into the response.
