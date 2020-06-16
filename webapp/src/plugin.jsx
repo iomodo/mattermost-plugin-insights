@@ -1,10 +1,10 @@
 import React from 'react';
 
 import en from '../i18n/en.json';
-import {id as pluginId} from './manifest';
-import { openRootModal } from './actions';
-import Root from './components/root';
+import { setBackstageModal } from './actions';
 import reducer from './reducer';
+import BackstageModal from './components/backstage/backstage_modal';
+import {BackstageArea} from './types/backstage';
 
 
 function getTranslations(locale) {
@@ -18,11 +18,11 @@ function getTranslations(locale) {
 export default class Plugin {
     // eslint-disable-next-line no-unused-vars
     initialize(registry, store) {
-        registry.registerRootComponent(Root);
+        registry.registerRootComponent(BackstageModal);
 
         registry.registerMainMenuAction(
             'Workplace Insights',
-            () => store.dispatch(openRootModal())
+            () => store.dispatch(setBackstageModal(true, BackstageArea.Users))
         );
         registry.registerReducer(reducer);
 

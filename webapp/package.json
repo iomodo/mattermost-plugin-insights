@@ -58,9 +58,11 @@
     "webpack-cli": "3.3.5"
   },
   "dependencies": {
+    "@types/react-redux": "^7.1.9",
     "core-js": "3.6.2",
+    "mattermost-redux": "^5.23.0",
     "react": "16.8.6",
-    "react-redux": "5.0.7",
+    "react-redux": "^5.0.7",
     "redux": "4.0.1",
     "typescript": "3.5.3"
   },

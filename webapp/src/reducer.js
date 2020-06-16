@@ -1,17 +1,19 @@
 import {combineReducers} from 'redux';
-import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL} from './action_types';
+import {SET_BACKSTAGE_MODAL_SETTINGS} from './types/actions';
 
-const rootModalVisible = (state = false, action) => {
+
+function backstageModal(state = {open: false, selectedArea: 0}, action) {
     switch (action.type) {
-    case OPEN_ROOT_MODAL:
-        return true;
-    case CLOSE_ROOT_MODAL:
-        return false;
+    case SET_BACKSTAGE_MODAL_SETTINGS:
+        return {
+            open: Boolean(action.open),
+            selectedArea: action.selectedArea,
+        };
     default:
         return state;
     }
-};
+}
 
 export default combineReducers({
-    rootModalVisible,
+    backstageModal,
 });
