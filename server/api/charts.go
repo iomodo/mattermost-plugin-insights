@@ -48,7 +48,7 @@ func (h *ChartsHandler) getCharts(w http.ResponseWriter, r *http.Request) {
 
 	h.mux.Lock()
 	chart, ok := h.charts[chartID[0]]
-	delete(h.charts, chartID[0])
+	// delete(h.charts, chartID[0])
 	h.mux.Unlock()
 	if !ok {
 		HandleErrorWithCode(w, http.StatusOK, "can't find chart", errors.New("can't find chart"))
