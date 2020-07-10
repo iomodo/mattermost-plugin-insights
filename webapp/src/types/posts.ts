@@ -6,3 +6,7 @@ export interface Item {
 export interface Team extends Item {
     name: string;
 }
+
+export interface Channel extends Item {
+    name: string;
+}
