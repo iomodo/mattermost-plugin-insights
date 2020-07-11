@@ -8,7 +8,7 @@ import (
 
 func createPostsAutocompleteData() *model.AutocompleteData {
 	posts := model.NewAutocompleteData("posts", "", "Get insights for posts")
-	posts.AddNamedDynamicListArgument("team", "Specify team", "teams", false)
+	posts.AddNamedDynamicListArgument("team", "Specify team", "teams_for_command", false)
 	posts.AddNamedTextArgument("channel", "Specify channel as ~some_channel", "[optional]", "", false)
 	frequencyItems := []model.AutocompleteListItem{{
 		Item:     "daily",

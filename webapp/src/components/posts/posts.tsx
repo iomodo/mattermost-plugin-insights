@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
-import TeamSelector from '../team_selector/team_selector'
 import ItemSelector from '../item_selector/item_selector';
 import {Team, Channel} from '../../types/posts';
+import {clientFetchTeams, clientFetchChannels} from '../../client';
 
 const Posts = () => {
     const [teamId, setTeamId] = useState<string>();
@@ -16,12 +16,14 @@ const Posts = () => {
             <h1>Post Statistics</h1>
             Teams
             <ItemSelector
-                getItems={fetchTeams}
+                getItems={clientFetchTeams}
+                argument={''}
                 onSelectedChange={(teamId) => {setTeamId(teamId);}}
             />
             Channels
             <ItemSelector
-                getItems={fetchChannels}
+                getItems={clientFetchChannels}
+                argument={teamId?teamId:''}
                 onSelectedChange={(channelId) => {setChannelId(channelId);}}
             />
         </div>

@@ -5,7 +5,8 @@ import {Item} from '../../types/posts';
 
 interface Props {
     id?: string;
-    getItems: () => Promise<Item[]>;
+    getItems: (arg: any) => Promise<Item[]>;
+    argument: Object;
     onSelectedChange: (id?: string) => void;
 }
 
@@ -23,7 +24,7 @@ export default function ItemSelector(props: Props) {
     const [itemOptions, setItemOptions] = useState<Option[]>([]);
 
     async function fetchItems() {
-        const items = await props.getItems();
+        const items = await props.getItems(props.argument);
         const optionList = items.map((item: Item) => {
             return ({
                 value: item.display_name,
@@ -39,7 +40,7 @@ export default function ItemSelector(props: Props) {
     // Fill in the userOptions on mount.
     useEffect(() => {
         fetchItems();
-    }, []);
+    }, [props.argument]);
 
     const [selected, setSelected] = useState<Option | null>(null);
 

@@ -40,9 +40,14 @@ func NewHandler(pluginAPIClient *pluginapi.Client) *Handler {
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, sourcePluginID string) {
+	println("serve", r.URL.Path)
 	switch r.URL.Path {
-	case "/teams":
+	case "/api/v1/teams":
 		h.getTeams(w, r)
+	case "/channels":
+		h.getChannels(w, r)
+	case "/teams_for_command":
+		h.getTeamsForCommand(w, r)
 	default:
 		h.root.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), contextKey(PluginIDContextKey), sourcePluginID)))
 	}

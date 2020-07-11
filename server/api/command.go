@@ -7,7 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-func (h *Handler) getTeams(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) getTeamsForCommand(w http.ResponseWriter, r *http.Request) {
 	teams, err := h.pluginAPI.Team.List()
 	if err != nil {
 		HandleError(w, err)
