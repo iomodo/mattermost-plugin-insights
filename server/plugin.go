@@ -59,7 +59,8 @@ func (p *Plugin) OnActivate() error {
 
 	p.chartsHandler = api.NewChartsHandler(p.handler.APIRouter, pluginAPIClient, p.bot, p.bot)
 
-	p.insight = insights.NewService(pluginAPIClient, st, p.bot, p.config, p.chartsHandler)
+	p.insight = insights.NewService(pluginAPIClient, st, p.bot, p.config)
+	api.NewInsightsHandler(p.insight, p.handler.APIRouter, pluginAPIClient, p.bot)
 
 	if err := command.RegisterCommands(p.API.RegisterCommand); err != nil {
 		return errors.Wrapf(err, "failed register commands")

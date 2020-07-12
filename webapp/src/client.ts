@@ -34,12 +34,10 @@ export const doFetchWithResponse = async (url: string, options = {}) => {
 };
 
 export function clientFetchTeams() {
-    return doGet(`${apiUrl}/teams`);
+    return doGet(`${apiUrl}/insights/teams`);
 }
 
 export function clientFetchChannels(teamID: string) {
-    const u = `/plugins/${id}/channels?team_id=${teamID}&page=0&per_page=10`
-    console.log(u)
-    return doGet(`/plugins/${id}/channels?team_id=${teamID}&page=0&per_page=10`);
+    return doGet(`${apiUrl}/insights/channels?team_id=${teamID}&page=0&per_page=10`);
 }
 

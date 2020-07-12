@@ -1,15 +1,19 @@
 import React, {useEffect, useState} from 'react';
 import ItemSelector from '../item_selector/item_selector';
-import {Team, Channel} from '../../types/posts';
+import {Team, Channel, Item} from '../../types/posts';
 import {clientFetchTeams, clientFetchChannels} from '../../client';
 
 const Posts = () => {
     const [teamId, setTeamId] = useState<string>();
     const [channelId, setChannelId] = useState<string>();
+    const [fetchChannels, setFetchChannels] = useState<() => Promise<Item[]>>();
 
     useEffect(() => {
         console.log('teamId', teamId, 'channelId', channelId);
-    }, [teamId, channelId]);
+        setFetchChannels(() => () => {
+            return clientFetchChannels(teamId?teamId:'');
+        })
+    }, [teamId]);
 
     return(
         <div>
@@ -17,13 +21,11 @@ const Posts = () => {
             Teams
             <ItemSelector
                 getItems={clientFetchTeams}
-                argument={''}
                 onSelectedChange={(teamId) => {setTeamId(teamId);}}
             />
             Channels
             <ItemSelector
-                getItems={clientFetchChannels}
-                argument={teamId?teamId:''}
+                getItems={fetchChannels?fetchChannels:defaultFetchChannels}
                 onSelectedChange={(channelId) => {setChannelId(channelId);}}
             />
         </div>
@@ -31,15 +33,13 @@ const Posts = () => {
     );
 }
 
-async function fetchChannels() {
-    const teams: Channel[] = [{
+async function defaultFetchChannels() {
+    const teams: Item[] = [{
         id: '3',
         display_name: 'chan1',
-        name: 'chan',
     }, {
         id: '24',
         display_name: 'chan2',
-        name: 'chan_chan',
     }]
     return teams;
 }
