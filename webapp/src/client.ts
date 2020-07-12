@@ -41,3 +41,7 @@ export function clientFetchChannels(teamID: string) {
     return doGet(`${apiUrl}/insights/channels?team_id=${teamID}&page=0&per_page=10`);
 }
 
+export function clientFetchPostData(teamID: string, channelID: string) {
+    return doGet(`${apiUrl}/insights/post_data?team_id=${teamID}&channel_id=${channelID}`);
+}
+

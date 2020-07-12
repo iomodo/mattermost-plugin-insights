@@ -31,6 +31,7 @@ func NewInsightsHandler(insights insights.Service, router *mux.Router, api *plug
 	chartsRouter := router.PathPrefix("/insights").Subrouter()
 	chartsRouter.HandleFunc("/teams", handler.getTeams).Methods(http.MethodGet)
 	chartsRouter.HandleFunc("/channels", handler.getChannels).Methods(http.MethodGet)
+	chartsRouter.HandleFunc("/post_data)", handler.getPostData).Methods(http.MethodGet)
 	return handler
 }
 
@@ -71,8 +72,14 @@ func (h *InsightsHandler) getChannels(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-// func (h *Handler) getData(w http.ResponseWriter, r *http.Request) {
+func (h *InsightsHandler) getPostData(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	teamID := query.Get("team_id")
+	channelID := query.Get("channel_id")
 
-// 	rows := c.insight.GetPostCounts(team, channel, frequency, span, false)
+	rows := h.insights.GetPostCounts(teamID, channelID, "daily", "month", false)
 
-// }
+	b, _ := json.Marshal(rows)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(b)
+}
