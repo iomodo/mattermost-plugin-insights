@@ -42,6 +42,6 @@ export function clientFetchChannels(teamID: string) {
 }
 
 export function clientFetchPostData(teamID: string, channelID: string) {
-    return doGet(`${apiUrl}/insights/post_data?team_id=${teamID}&channel_id=${channelID}`);
+    return doGet(`${apiUrl}/insights/posts?team_id=${teamID}&channel_id=${channelID}`);
 }
 

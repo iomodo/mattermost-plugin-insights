@@ -89,7 +89,7 @@ func (s *Store) GetPostCounts(options PostCountsOptions) (model.AnalyticsRows, e
 		t := time.Now().Add(time.Hour * time.Duration(-24*7))
 		args = append(args, t.Unix()*1000)
 	} else if options.Span == SpanTypeMonth {
-		query += ` WHERE Posts.CreateAt >= ?`
+		query += ` Posts.CreateAt >= ?`
 		t := time.Now().Add(time.Hour * time.Duration(-24*30))
 		args = append(args, t.Unix()*1000)
 	} else if options.Span == SpanTypeYear {

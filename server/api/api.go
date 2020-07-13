@@ -40,7 +40,7 @@ func NewHandler(pluginAPIClient *pluginapi.Client) *Handler {
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, sourcePluginID string) {
-	println("serve", r.URL.Path)
+	println("serve", r.URL.String())
 	switch r.URL.Path {
 	case "/teams_for_command":
 		h.getTeamsForCommand(w, r)

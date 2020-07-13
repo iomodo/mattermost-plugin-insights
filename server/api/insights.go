@@ -28,14 +28,15 @@ func NewInsightsHandler(insights insights.Service, router *mux.Router, api *plug
 		pluginAPI: api,
 		log:       log,
 	}
-	chartsRouter := router.PathPrefix("/insights").Subrouter()
-	chartsRouter.HandleFunc("/teams", handler.getTeams).Methods(http.MethodGet)
-	chartsRouter.HandleFunc("/channels", handler.getChannels).Methods(http.MethodGet)
-	chartsRouter.HandleFunc("/post_data)", handler.getPostData).Methods(http.MethodGet)
+	insightsRouter := router.PathPrefix("/insights").Subrouter()
+	insightsRouter.HandleFunc("/posts", handler.getPostData).Methods(http.MethodGet)
+	insightsRouter.HandleFunc("/teams", handler.getTeams).Methods(http.MethodGet)
+	insightsRouter.HandleFunc("/channels", handler.getChannels).Methods(http.MethodGet)
 	return handler
 }
 
 func (h *InsightsHandler) getTeams(w http.ResponseWriter, r *http.Request) {
+	println("in getTeams", r.URL.String())
 	teams, err := h.pluginAPI.Team.List()
 	if err != nil {
 		HandleError(w, err)
@@ -52,6 +53,7 @@ func (h *InsightsHandler) getTeams(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *InsightsHandler) getChannels(w http.ResponseWriter, r *http.Request) {
+	println("in getChannels", r.URL.String())
 	query := r.URL.Query()
 	teamID := query.Get("team_id")
 	page, _ := strconv.Atoi(query.Get("page"))
@@ -73,12 +75,13 @@ func (h *InsightsHandler) getChannels(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *InsightsHandler) getPostData(w http.ResponseWriter, r *http.Request) {
+	println("in getPostData", r.URL.String())
 	query := r.URL.Query()
 	teamID := query.Get("team_id")
 	channelID := query.Get("channel_id")
 
 	rows := h.insights.GetPostCounts(teamID, channelID, "daily", "month", false)
-
+	println("rows", rows)
 	b, _ := json.Marshal(rows)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(b)

@@ -1,12 +1,16 @@
 import React, {useEffect, useState} from 'react';
 import ItemSelector from '../item_selector/item_selector';
 import {Team, Channel, Item} from '../../types/posts';
-import {clientFetchTeams, clientFetchChannels} from '../../client';
+import {clientFetchTeams, clientFetchChannels, clientFetchPostData} from '../../client';
+import {
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  } from 'recharts';
 
 const Posts = () => {
     const [teamId, setTeamId] = useState<string>();
     const [channelId, setChannelId] = useState<string>();
     const [fetchChannels, setFetchChannels] = useState<() => Promise<Item[]>>();
+    const [postData, setPostData] = useState<[]>();
 
     useEffect(() => {
         console.log('teamId', teamId, 'channelId', channelId);
@@ -14,6 +18,14 @@ const Posts = () => {
             return clientFetchChannels(teamId?teamId:'');
         })
     }, [teamId]);
+
+    useEffect(() => {
+        console.log('trying to fetch data');
+        clientFetchPostData(teamId?teamId:'', channelId?channelId:'').then(data => {
+            console.log(data)
+            setPostData(data);
+        })
+    }, [teamId, channelId]);
 
     return(
         <div>
@@ -28,6 +40,20 @@ const Posts = () => {
                 getItems={fetchChannels?fetchChannels:defaultFetchChannels}
                 onSelectedChange={(channelId) => {setChannelId(channelId);}}
             />
+            <LineChart
+                width={500}
+                height={200}
+                data={postData}
+                margin={{
+                    top: 10, right: 30, left: 0, bottom: 0,
+                }}
+            >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Line connectNulls type="monotone" dataKey="value" stroke="#8884d8" fill="#8884d8" />
+            </LineChart>
         </div>
         
     );
