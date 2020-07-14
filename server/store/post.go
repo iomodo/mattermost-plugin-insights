@@ -78,31 +78,38 @@ func (s *Store) GetPostCounts(options PostCountsOptions) (model.AnalyticsRows, e
 	query = fmt.Sprintf(query, freq)
 
 	if options.BotsOnly {
-		query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
+		query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid" //TODO fix
 	}
+
+	param := "WHERE"
+
 	if len(options.TeamID) > 0 {
 		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = ? AND"
 		args = append(args, options.TeamID)
+		param = ""
+		if len(options.ChannelID) > 0 {
+			query += " Posts.ChannelId = ? AND"
+			args = append(args, options.ChannelID)
+		}
 	}
 	if options.Span == SpanTypeWeek {
-		query += ` WHERE Posts.CreateAt >= ?`
 		t := time.Now().Add(time.Hour * time.Duration(-24*7))
 		args = append(args, t.Unix()*1000)
 	} else if options.Span == SpanTypeMonth {
-		query += ` Posts.CreateAt >= ?`
 		t := time.Now().Add(time.Hour * time.Duration(-24*30))
 		args = append(args, t.Unix()*1000)
 	} else if options.Span == SpanTypeYear {
-		query += ` WHERE Posts.CreateAt >= ?`
 		t := time.Now().Add(time.Hour * time.Duration(-24*365))
 		args = append(args, t.Unix()*1000)
 	}
-	if options.Start != 0 && options.End != 0 {
-		query += ` WHERE Posts.CreateAt <= ?
-		AND Posts.CreateAt >= ? `
-		args = append(args, options.Start)
-		args = append(args, options.End)
-	}
+	query += fmt.Sprintf(` %s Posts.CreateAt >= ?`, param)
+
+	// if options.Start != 0 && options.End != 0 {
+	// 	query += ` WHERE Posts.CreateAt <= ?
+	// 	AND Posts.CreateAt >= ? `
+	// 	args = append(args, options.Start)
+	// 	args = append(args, options.End)
+	// }
 
 	query += fmt.Sprintf(` GROUP BY %s(FROM_UNIXTIME(Posts.CreateAt / 1000))
 		ORDER BY Name DESC
