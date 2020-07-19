@@ -1,6 +1,8 @@
 package command
 
 import (
+	"errors"
+
 	"github.com/mattermost/mattermost-plugin-insights/server/chart"
 	"github.com/mattermost/mattermost-plugin-insights/server/utils"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -9,7 +11,7 @@ import (
 func createPostsAutocompleteData() *model.AutocompleteData {
 	posts := model.NewAutocompleteData("posts", "", "Get insights for posts")
 	posts.AddNamedDynamicListArgument("team", "Specify team", "teams_for_command", false)
-	posts.AddNamedTextArgument("channel", "Specify channel as ~some_channel", "[optional]", "", false)
+	posts.AddNamedDynamicListArgument("channel", "Specify channel", "channels_for_commands", false)
 	frequencyItems := []model.AutocompleteListItem{{
 		Item:     "daily",
 		Hint:     "",
@@ -77,6 +79,9 @@ func (c *Command) handlePosts(parameters []string) {
 		parameters = parameters[2:]
 	}
 
+	team, _ = c.getTeamIDFromTeamName(team)
+	channel, _ = c.getChannelIDFromChannelAndTeam(team, channel)
+
 	rows := c.insight.GetPostCounts(team, channel, frequency, span, false)
 	chart := chart.CreateBarChart("Posts per day", rows)
 	id := utils.NewID()
@@ -90,4 +95,35 @@ func (c *Command) handlePosts(parameters []string) {
 
 	text := "![" + "Posts per day" + "](" + chartURL + ")"
 	c.poster.Ephemeral(c.args.UserId, c.args.ChannelId, "%s", text)
+}
+
+func (c *Command) getTeamIDFromTeamName(teamName string) (string, error) {
+	teams, err := c.pluginAPI.Team.List()
+	if err != nil {
+		return "", err
+	}
+	for _, team := range teams {
+		if team.Name == teamName {
+			return team.Id, nil
+		}
+	}
+	return "", errors.New("team not found")
+}
+
+func (c *Command) getChannelIDFromChannelAndTeam(teamID, channelName string) (string, error) {
+	perPage := 1000
+	for page := 0; ; page++ {
+		channels, err := c.pluginAPI.Channel.ListPublicChannelsForTeam(teamID, page, perPage)
+		if err != nil {
+			return "", err
+		}
+		if len(channels) == 0 {
+			return "", errors.New("channel not found")
+		}
+		for _, channel := range channels {
+			if channel.Name == channelName {
+				return channel.Id, nil
+			}
+		}
+	}
 }

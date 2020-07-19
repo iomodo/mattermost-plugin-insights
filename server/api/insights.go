@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -81,7 +82,7 @@ func (h *InsightsHandler) getPostData(w http.ResponseWriter, r *http.Request) {
 	channelID := query.Get("channel_id")
 
 	rows := h.insights.GetPostCounts(teamID, channelID, "daily", "month", false)
-	println("rows", rows)
+	println(fmt.Sprintf("rows - %v", rows))
 	b, _ := json.Marshal(rows)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(b)

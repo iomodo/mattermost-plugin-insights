@@ -44,7 +44,7 @@ func (s *ServiceImpl) GetPostCounts(teamID, channelID, frequency, span string, b
 		End:       0,
 		Limit:     50,
 		Frequency: store.FrequencyType(frequency),
-		Span:      store.SpanType(span),
+		Period:    store.PeriodType(span),
 	})
 	if err != nil {
 		s.pluginAPI.Log.Debug("error getting post counts", err)

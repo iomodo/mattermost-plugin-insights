@@ -38,13 +38,13 @@ const (
 	FrequencyTypeYearly  FrequencyType = "yearly"
 )
 
-type SpanType string
+type PeriodType string
 
 const (
-	SpanTypeWeek  SpanType = "week"
-	SpanTypeMonth SpanType = "month"
-	SpanTypeYear  SpanType = "year"
-	SpanTypeAll   SpanType = "all"
+	PeriodTypeWeek  PeriodType = "week"
+	PeriodTypeMonth PeriodType = "month"
+	PeriodTypeYear  PeriodType = "year"
+	PeriodTypeAll   PeriodType = "all"
 )
 
 type PostCountsOptions struct {
@@ -55,7 +55,7 @@ type PostCountsOptions struct {
 	End       int64
 	Limit     int64
 	Frequency FrequencyType
-	Span      SpanType
+	Period    PeriodType
 }
 
 func (s *Store) GetPostCounts(options PostCountsOptions) (model.AnalyticsRows, error) {
@@ -92,13 +92,13 @@ func (s *Store) GetPostCounts(options PostCountsOptions) (model.AnalyticsRows, e
 			args = append(args, options.ChannelID)
 		}
 	}
-	if options.Span == SpanTypeWeek {
+	if options.Period == PeriodTypeWeek {
 		t := time.Now().Add(time.Hour * time.Duration(-24*7))
 		args = append(args, t.Unix()*1000)
-	} else if options.Span == SpanTypeMonth {
+	} else if options.Period == PeriodTypeMonth {
 		t := time.Now().Add(time.Hour * time.Duration(-24*30))
 		args = append(args, t.Unix()*1000)
-	} else if options.Span == SpanTypeYear {
+	} else if options.Period == PeriodTypeYear {
 		t := time.Now().Add(time.Hour * time.Duration(-24*365))
 		args = append(args, t.Unix()*1000)
 	}
