@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost-plugin-insights/server/command"
 	"github.com/mattermost/mattermost-plugin-insights/server/config"
 	"github.com/mattermost/mattermost-plugin-insights/server/insights"
+	"github.com/mattermost/mattermost-plugin-insights/server/sentiment"
 	"github.com/mattermost/mattermost-plugin-insights/server/store"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -59,7 +60,7 @@ func (p *Plugin) OnActivate() error {
 
 	p.chartsHandler = api.NewChartsHandler(p.handler.APIRouter, pluginAPIClient, p.bot, p.bot)
 
-	p.insight = insights.NewService(pluginAPIClient, st, p.bot, p.config)
+	p.insight = insights.NewService(pluginAPIClient, st, p.bot, p.config, sentiment.NewSentimentAnalyzer())
 	api.NewInsightsHandler(p.insight, p.handler.APIRouter, pluginAPIClient, p.bot)
 
 	if err := command.RegisterCommands(p.API.RegisterCommand); err != nil {

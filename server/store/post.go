@@ -156,3 +156,47 @@ func EndOfDay(t time.Time) time.Time {
 func Yesterday() time.Time {
 	return time.Now().AddDate(0, 0, -1)
 }
+
+type PostOptions struct {
+	ChannelID string
+	From      int // days before today
+	To        int // days before today
+	Limit     int // number of posts
+}
+
+type MessagesRow struct {
+	Message string
+}
+
+func (s *Store) GetPosts(options PostOptions) ([]*MessagesRow, error) {
+	args := []interface{}{}
+	query :=
+		`SELECT
+			Posts.Message AS Message
+		FROM Posts WHERE
+		Posts.ChannelId = ? AND Posts.CreateAt >= ? Posts.CreateAt < ? LIMIT ?`
+	args = append(args, options.ChannelID)
+	from := time.Now().Add(time.Hour * time.Duration(-24*options.From))
+	args = append(args, from.Unix()*1000)
+	to := time.Now().Add(time.Hour * time.Duration(-24*options.From))
+	args = append(args, to.Unix()*1000)
+	args = append(args, options.Limit)
+
+	rows, err := s.db.Query(query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query database")
+	}
+	defer rows.Close()
+
+	result := []*MessagesRow{}
+	for rows.Next() {
+		var (
+			Message string
+		)
+		if err := rows.Scan(&Message); err != nil {
+			log.Fatal(err)
+		}
+		result = append(result, &MessagesRow{Message: Message})
+	}
+	return result, nil
+}

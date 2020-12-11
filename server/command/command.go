@@ -77,6 +77,8 @@ func (c *Command) Handle() error {
 	switch cmd {
 	case "posts":
 		c.handlePosts(parameters)
+	case "sentiment":
+		c.handleSentiment(parameters)
 	default:
 		c.postCommandResponse(helpText)
 	}
@@ -91,5 +93,6 @@ func (c *Command) postCommandResponse(text string) {
 func createInsightsAutocompleteData() *model.AutocompleteData {
 	insights := model.NewAutocompleteData("insights", "[command]", "Available commands: posts")
 	insights.AddCommand(createPostsAutocompleteData())
+	insights.AddCommand(createSentimentAutocompleteData())
 	return insights
 }

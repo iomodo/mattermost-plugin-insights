@@ -6,24 +6,27 @@ import (
 
 	"github.com/mattermost/mattermost-plugin-insights/server/bot"
 	"github.com/mattermost/mattermost-plugin-insights/server/config"
+	"github.com/mattermost/mattermost-plugin-insights/server/sentiment"
 	"github.com/mattermost/mattermost-plugin-insights/server/store"
 )
 
 // ServiceImpl holds the information needed by the InsightsService's methods to complete their functions.
 type ServiceImpl struct {
-	pluginAPI     *pluginapi.Client
-	configService config.Service
-	store         *store.Store
-	poster        bot.Poster
+	pluginAPI         *pluginapi.Client
+	configService     config.Service
+	store             *store.Store
+	poster            bot.Poster
+	sentimentAnalyzer sentiment.Sentiment
 }
 
 // NewService creates a new insights ServiceImpl.
-func NewService(pluginAPI *pluginapi.Client, store *store.Store, poster bot.Poster, configService config.Service) *ServiceImpl {
+func NewService(pluginAPI *pluginapi.Client, store *store.Store, poster bot.Poster, configService config.Service, sentiment sentiment.Sentiment) *ServiceImpl {
 	return &ServiceImpl{
-		pluginAPI:     pluginAPI,
-		store:         store,
-		poster:        poster,
-		configService: configService,
+		pluginAPI:         pluginAPI,
+		store:             store,
+		poster:            poster,
+		configService:     configService,
+		sentimentAnalyzer: sentiment,
 	}
 }
 
