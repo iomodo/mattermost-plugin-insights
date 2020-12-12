@@ -84,11 +84,11 @@ func (s *Store) GetPostCounts(options PostCountsOptions) (model.AnalyticsRows, e
 	param := "WHERE"
 
 	if len(options.TeamID) > 0 {
-		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = ? AND"
+		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = $1 AND"
 		args = append(args, options.TeamID)
 		param = ""
 		if len(options.ChannelID) > 0 {
-			query += " Posts.ChannelId = ? AND"
+			query += " Posts.ChannelId = $2 AND"
 			args = append(args, options.ChannelID)
 		}
 	}
@@ -102,7 +102,7 @@ func (s *Store) GetPostCounts(options PostCountsOptions) (model.AnalyticsRows, e
 		t := time.Now().Add(time.Hour * time.Duration(-24*365))
 		args = append(args, t.Unix()*1000)
 	}
-	query += fmt.Sprintf(` %s Posts.CreateAt >= ?`, param)
+	query += fmt.Sprintf(` %s Posts.CreateAt >= $%d`, param, len(args))
 
 	// if options.Start != 0 && options.End != 0 {
 	// 	query += ` WHERE Posts.CreateAt <= ?
@@ -111,10 +111,10 @@ func (s *Store) GetPostCounts(options PostCountsOptions) (model.AnalyticsRows, e
 	// 	args = append(args, options.End)
 	// }
 
+	args = append(args, options.Limit)
 	query += fmt.Sprintf(` GROUP BY %s(FROM_UNIXTIME(Posts.CreateAt / 1000))
 		ORDER BY Name DESC
-		LIMIT ?`, freq)
-	args = append(args, options.Limit)
+		LIMIT $%d`, freq, len(args))
 
 	s.log.Debugf("query", query)
 	s.log.Debugf("args", args)
@@ -174,16 +174,16 @@ func (s *Store) GetPosts(options PostOptions) ([]*MessagesRow, error) {
 		`SELECT
 			Posts.Message AS Message
 		FROM Posts WHERE
-		Posts.ChannelId = ? AND Posts.CreateAt >= ? Posts.CreateAt < ? LIMIT ?`
+		Posts.ChannelId = $1 AND Posts.CreateAt >= $2 AND Posts.CreateAt < $3 LIMIT $4`
 	args = append(args, options.ChannelID)
 	from := time.Now().Add(time.Hour * time.Duration(-24*options.From))
 	args = append(args, from.Unix()*1000)
-	to := time.Now().Add(time.Hour * time.Duration(-24*options.From))
+	to := time.Now().Add(time.Hour * time.Duration(-24*options.To))
 	args = append(args, to.Unix()*1000)
 	args = append(args, options.Limit)
 
 	rows, err := s.db.Query(query, args...)
-	if err != nil {
+	if err != nil || rows == nil {
 		return nil, errors.Wrap(err, "failed to query database")
 	}
 	defer rows.Close()

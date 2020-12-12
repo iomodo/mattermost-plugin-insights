@@ -9,8 +9,9 @@ import (
 
 // Store .
 type Store struct {
-	db  *sql.DB
-	log bot.Logger
+	db     *sql.DB
+	driver string
+	log    bot.Logger
 }
 
 // NewStore .
@@ -20,9 +21,11 @@ func NewStore(pluginAPI *pluginapi.Client, log bot.Logger) *Store {
 		log.Errorf("error while getting DB replica", err)
 		return nil
 	}
+	driverName := pluginAPI.Store.DriverName()
 	return &Store{
-		db:  db,
-		log: log,
+		db:     db,
+		driver: driverName,
+		log:    log,
 	}
 }
 
