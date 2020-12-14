@@ -65,6 +65,14 @@ func (s *Store) GetPostCounts(options PostCountsOptions) (model.AnalyticsRows, e
 			%s(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
 			COUNT(Posts.Id) AS Value
 		FROM Posts`
+	s.log.Errorf("error %v, %v, %v", s.driver, model.DATABASE_DRIVER_MYSQL, model.DATABASE_DRIVER_POSTGRES)
+	if s.driver == model.DATABASE_DRIVER_POSTGRES {
+		query = `SELECT
+			TO_CHAR(%s(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name,
+			COUNT(Posts.Id) AS Value
+			FROM Posts`
+	}
+
 	freq := "DATE"
 	if options.Frequency == FrequencyTypeDaily {
 		freq = "DATE"
@@ -112,9 +120,15 @@ func (s *Store) GetPostCounts(options PostCountsOptions) (model.AnalyticsRows, e
 	// }
 
 	args = append(args, options.Limit)
-	query += fmt.Sprintf(` GROUP BY %s(FROM_UNIXTIME(Posts.CreateAt / 1000))
+	if s.driver == model.DATABASE_DRIVER_MYSQL {
+		query += fmt.Sprintf(` GROUP BY %s(FROM_UNIXTIME(Posts.CreateAt / 1000))
 		ORDER BY Name DESC
 		LIMIT $%d`, freq, len(args))
+	} else if s.driver == model.DATABASE_DRIVER_POSTGRES {
+		query += fmt.Sprintf(` GROUP BY TO_CHAR(%s(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD')
+		ORDER BY Name DESC
+		LIMIT $%d`, freq, len(args))
+	}
 
 	s.log.Debugf("query", query)
 	s.log.Debugf("args", args)
